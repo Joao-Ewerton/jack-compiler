@@ -1,11 +1,15 @@
 import java.io.*;
+import java.util.*;
+import java.util.regex.*;
 
 public class JackTokenizer {
     private String content;
+    private List<String> tokens;
 
     public JackTokenizer(File inputFile) throws IOException {
         content = readFile(inputFile);
         cleanContent();
+        tokenize();
     }
 
     private String readFile(File file) throws IOException {
@@ -22,5 +26,15 @@ public class JackTokenizer {
     private void cleanContent() {
         content = content.replaceAll("//.*", "");
         content = content.replaceAll("/\\*([\\s\\S]*?)\\*/", "");
+    }
+
+    // separar os tokens
+    private void tokenize() {
+        tokens = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\w+|\\p{Punct}");
+        Matcher matcher = pattern.matcher(content);
+        while (matcher.find()) {
+            tokens.add(matcher.group());
+        }
     }
 }
