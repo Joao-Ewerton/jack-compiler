@@ -7,6 +7,12 @@ public class JackTokenizer {
     private List<String> tokens;
     private int currentTokenIndex;
     private String currentToken;
+    private static final String SYMBOLS = "{}()[].,;+-*/&|<>=~";
+    private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
+        "class", "constructor", "function", "method", "field", "static", "var",
+        "int", "char", "boolean", "void", "true", "false", "null", "this",
+        "let", "do", "if", "else", "while", "return"
+    ));
 
     public JackTokenizer(File inputFile) throws IOException {
         content = readFile(inputFile);
@@ -51,5 +57,20 @@ public class JackTokenizer {
             currentToken = tokens.get(currentTokenIndex);
             currentTokenIndex++;
         }
+    }
+
+    public TokenType tokenType() {
+        if (KEYWORDS.contains(currentToken)) return TokenType.KEYWORD;
+        if (SYMBOLS.contains(currentToken)) return TokenType.SYMBOL;
+        if (currentToken.startsWith("\"")) return TokenType.STRING_CONST;
+        if (currentToken.matches("\\d+")) return TokenType.INT_CONST;
+        return TokenType.IDENTIFIER;
+    }
+
+    public String getToken() {
+        if (tokenType() == TokenType.STRING_CONST) {
+            return currentToken.substring(1, currentToken.length() - 1);
+        }
+        return currentToken;
     }
 }
