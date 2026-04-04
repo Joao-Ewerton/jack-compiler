@@ -5,11 +5,14 @@ import java.util.regex.*;
 public class JackTokenizer {
     private String content;
     private List<String> tokens;
+    private int currentTokenIndex;
+    private String currentToken;
 
     public JackTokenizer(File inputFile) throws IOException {
         content = readFile(inputFile);
         cleanContent();
         tokenize();
+        currentTokenIndex = 0;
     }
 
     private String readFile(File file) throws IOException {
@@ -36,6 +39,17 @@ public class JackTokenizer {
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
             tokens.add(matcher.group());
+        }
+    }
+
+    public boolean hasMoreTokens() {
+        return currentTokenIndex < tokens.size();
+    }
+
+    public void advance() {
+        if (hasMoreTokens()) {
+            currentToken = tokens.get(currentTokenIndex);
+            currentTokenIndex++;
         }
     }
 }
