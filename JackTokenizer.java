@@ -31,7 +31,8 @@ public class JackTokenizer {
     // separar os tokens
     private void tokenize() {
         tokens = new ArrayList<>();
-        Pattern pattern = Pattern.compile("\\w+|\\p{Punct}");
+        String regex = "\"([^\"]*)\"|([\\{\\}\\(\\)\\[\\]\\.,;\\+\\-\\*/&\\|<>=~])|(\\d+)|([a-zA-Z_]\\w*)";
+        Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
             tokens.add(matcher.group());
