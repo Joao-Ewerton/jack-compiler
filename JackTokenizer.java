@@ -5,10 +5,7 @@ public class JackTokenizer {
 
     public JackTokenizer(File inputFile) throws IOException {
         content = readFile(inputFile);
-    }
-
-    public String getContent() {
-        return content;
+        cleanContent();
     }
 
     private String readFile(File file) throws IOException {
@@ -22,4 +19,8 @@ public class JackTokenizer {
         return sb.toString();
     }
 
+    private void cleanContent() {
+        content = content.replaceAll("//.*", "");
+        content = content.replaceAll("/\\*([\\s\\S]*?)\\*/", "");
+    }
 }
