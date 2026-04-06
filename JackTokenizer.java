@@ -7,6 +7,7 @@ public class JackTokenizer {
     private List<String> tokens;
     private int currentTokenIndex;
     private String currentToken;
+
     private static final String SYMBOLS = "{}()[].,;+-*/&|<>=~";
     private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
         "class", "constructor", "function", "method", "field", "static", "var",
@@ -16,7 +17,6 @@ public class JackTokenizer {
 
     public JackTokenizer(File inputFile) throws IOException {
         content = readFile(inputFile);
-        cleanContent();
         tokenize();
         currentTokenIndex = 0;
     }
@@ -32,17 +32,17 @@ public class JackTokenizer {
         return sb.toString();
     }
 
-    private void cleanContent() {
-        content = content.replaceAll("//.*", "");
-        content = content.replaceAll("/\\*([\\s\\S]*?)\\*/", "");
-    }
-
-    // separar os tokens
+    // separar os tokens usando regex, ignorando comentários
     private void tokenize() {
         tokens = new ArrayList<>();
-        String regex = "\"([^\"]*)\"|([\\{\\}\\(\\)\\[\\]\\.,;\\+\\-\\*/&\\|<>=~])|(\\d+)|([a-zA-Z_]\\w*)";
+        
+        String noComments = content.replaceAll("(?s)/\\*.*?\\*/", "");
+        noComments = noComments.replaceAll("//.*", "");
+        
+        String regex = "\"([^\"]*)\"|[a-zA-Z_]\\w*|[\\{\\}\\(\\)\\[\\]\\.,;\\+\\-\\*/&\\|<>=~]|\\d+";
         Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(content);
+        Matcher matcher = pattern.matcher(noComments);
+        
         while (matcher.find()) {
             tokens.add(matcher.group());
         }
