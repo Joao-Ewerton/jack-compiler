@@ -98,8 +98,59 @@ public class CompilationEngine {
         writeIndented("</varDec>");
     }
 
-    public void compileSubroutine() {}
-    public void compileParameterList() {}
+    public void compileSubroutine() {
+        writeIndented("<subroutineDec>");
+        indentLevel++;
+
+        processToken();
+        processToken();
+        processToken();
+        processToken();
+        
+        compileParameterList();
+        
+        processToken();
+
+        writeIndented("<subroutineBody>");
+        indentLevel++;
+        
+        processToken();
+
+        // pode haver várias declarações de variáveis locais
+        while (tokenizer.tokenType() == TokenType.KEYWORD && tokenizer.getToken().equals("var")) {
+            compileVarDec();
+        }
+
+        compileStatements();
+
+        processToken();
+        
+        indentLevel--;
+        writeIndented("</subroutineBody>");
+
+        indentLevel--;
+        writeIndented("</subroutineDec>");
+    }
+
+    public void compileParameterList() {
+        writeIndented("<parameterList>");
+        indentLevel++;
+
+        if (!(tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(")"))) {
+            processToken();
+            processToken();
+
+            // se tiver mais parâmetros separados por vírgula
+            while (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(",")) {
+                processToken();
+                processToken();
+                processToken();
+            }
+        }
+
+        indentLevel--;
+        writeIndented("</parameterList>");
+    }
     
     public void compileStatements() {
         writeIndented("<statements>");
