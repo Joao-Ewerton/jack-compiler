@@ -280,8 +280,97 @@ public class CompilationEngine {
         writeIndented("</ifStatement>");
     }
     
-    public void compileExpression() {}
+    public void compileExpression() {
+        writeIndented("<expression>");
+        indentLevel++;
+
+        compileTerm();
+
+        // vai rodar enquanto achar um op matemático ou lógico (+, -, *, etc).
+        while (tokenizer.tokenType() == TokenType.SYMBOL && isOp(tokenizer.getToken())) {
+            processToken(); // processa o operador
+            compileTerm();
+        }
+
+        indentLevel--;
+        writeIndented("</expression>");
+    }
     
-    public void compileTerm() {}
-    public void compileExpressionList() {}
+    public void compileTerm() {
+        writeIndented("<term>");
+        indentLevel++;
+
+        TokenType type = tokenizer.tokenType();
+        String val = tokenizer.getToken();
+
+        // constantes numéricas, strings ou palavras-chave (true, false, null, this)
+        if (type == TokenType.INT_CONST || type == TokenType.STRING_CONST || 
+           (type == TokenType.KEYWORD && (val.equals("true") || val.equals("false") || val.equals("null") || val.equals("this")))) {
+            processToken();
+        } 
+        // operadores unários (-x, ~y)
+        else if (type == TokenType.SYMBOL && (val.equals("-") || val.equals("~"))) {
+            processToken();
+            compileTerm();
+        } 
+        // expressões entre parênteses (x + y)
+        else if (type == TokenType.SYMBOL && val.equals("(")) {
+            processToken();
+            compileExpression();
+            processToken();
+        } 
+        else if (type == TokenType.IDENTIFIER) {
+            processToken();
+            
+            // olha o próximo token para descobrir o que é
+            if (tokenizer.tokenType() == TokenType.SYMBOL) {
+                String nextToken = tokenizer.getToken();
+                
+                if (nextToken.equals("[")) {
+                    processToken();
+                    compileExpression();
+                    processToken();
+                } 
+                else if (nextToken.equals("(")) {
+                    processToken();
+                    compileExpressionList();
+                    processToken();
+                } 
+                else if (nextToken.equals(".")) {
+                    processToken();
+                    processToken();
+                    processToken();
+                    compileExpressionList();
+                    processToken();
+                }
+            }
+        }
+
+        indentLevel--;
+        writeIndented("</term>");
+    }
+
+    public void compileExpressionList() {
+        writeIndented("<expressionList>");
+        indentLevel++;
+
+        // se o token não for ')', então tem pelo menos uma expressão aqui dentro
+        if (!(tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(")"))) {
+            compileExpression();
+
+            // pega as próximas expressões separadas por vírgula
+            while (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(",")) {
+                processToken();
+                compileExpression();
+            }
+        }
+
+        indentLevel--;
+        writeIndented("</expressionList>");
+    }
+
+    private boolean isOp(String c) {
+        return c.equals("+") || c.equals("-") || c.equals("*") || c.equals("/") ||
+               c.equals("&") || c.equals("|") || c.equals("<") || c.equals(">") || c.equals("=");
+    }
 }
