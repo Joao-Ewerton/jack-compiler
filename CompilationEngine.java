@@ -100,13 +100,137 @@ public class CompilationEngine {
 
     public void compileSubroutine() {}
     public void compileParameterList() {}
-    public void compileStatements() {}
-    public void compileDo() {}
-    public void compileLet() {}
-    public void compileWhile() {}
-    public void compileReturn() {}
-    public void compileIf() {}
+    
+    public void compileStatements() {
+        writeIndented("<statements>");
+        indentLevel++;
+        
+        // roda enquanto achar um comando valido
+        while (tokenizer.tokenType() == TokenType.KEYWORD && 
+              (tokenizer.getToken().equals("let") || tokenizer.getToken().equals("if") || 
+               tokenizer.getToken().equals("while") || tokenizer.getToken().equals("do") || 
+               tokenizer.getToken().equals("return"))) {
+            
+            String token = tokenizer.getToken();
+            if (token.equals("let")) {
+                compileLet();
+            } else if (token.equals("if")) {
+                compileIf();
+            } else if (token.equals("while")) {
+                compileWhile();
+            } else if (token.equals("do")) {
+                compileDo();
+            } else if (token.equals("return")) {
+                compileReturn();
+            }
+        }
+        
+        indentLevel--;
+        writeIndented("</statements>");
+    }
+
+    public void compileDo() {
+        writeIndented("<doStatement>");
+        indentLevel++;
+        
+        processToken(); // do
+        processToken();
+        
+        if (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(".")) {
+            processToken();
+            processToken(); // nome do metodo
+        }
+        
+        processToken();
+        compileExpressionList();
+        processToken();
+        processToken();
+        
+        indentLevel--;
+        writeIndented("</doStatement>");
+    }
+    
+    public void compileLet() {
+        writeIndented("<letStatement>");
+        indentLevel++;
+        
+        processToken();
+        processToken();
+        
+        // checa se é array
+        if (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals("[")) {
+            processToken();
+            compileExpression();
+            processToken();
+        }
+        
+        processToken();
+        compileExpression();
+        processToken();
+        
+        indentLevel--;
+        writeIndented("</letStatement>");
+    }
+    
+    public void compileWhile() {
+        writeIndented("<whileStatement>");
+        indentLevel++;
+        
+        processToken();
+        processToken();
+        compileExpression();
+        processToken();
+        processToken();
+        compileStatements();
+        processToken();
+        
+        indentLevel--;
+        writeIndented("</whileStatement>");
+    }
+    
+    public void compileReturn() {
+        writeIndented("<returnStatement>");
+        indentLevel++;
+        
+        processToken();
+        
+        // se tiver algo alem do ; é pq tem expressão retornando
+        if (!(tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(";"))) {
+            compileExpression();
+        }
+        
+        processToken();
+        
+        indentLevel--;
+        writeIndented("</returnStatement>");
+    }
+    
+    public void compileIf() {
+        writeIndented("<ifStatement>");
+        indentLevel++;
+        
+        processToken();
+        processToken();
+        compileExpression();
+        processToken();
+        processToken();
+        compileStatements();
+        processToken();
+        
+        // verifica se tem o else
+        if (tokenizer.tokenType() == TokenType.KEYWORD && tokenizer.getToken().equals("else")) {
+            processToken();
+            processToken();
+            compileStatements();
+            processToken();
+        }
+        
+        indentLevel--;
+        writeIndented("</ifStatement>");
+    }
+    
     public void compileExpression() {}
+    
     public void compileTerm() {}
     public void compileExpressionList() {}
 }
