@@ -32,15 +32,13 @@ public class JackCompiler {
     }
 
     private static void processFile(File inputFile) throws IOException {
-        // Agora vamos gerar o arquivo sem o "T", apenas _Output.xml
+        // gera o arquivo com final _Output.xml
         String outputFilename = inputFile.getAbsolutePath().replace(".jack", "_Output.xml");
         File outputFile = new File(outputFilename);
         
         JackTokenizer tokenizer = new JackTokenizer(inputFile);
         CompilationEngine engine = new CompilationEngine(tokenizer, outputFile);
         
-        // A regra de ouro do Jack: todo arquivo é sempre uma classe.
-        // Portanto, a compilação sempre começa pelo compileClass()
         engine.compileClass();
         
         System.out.println("Criado: " + outputFilename);
