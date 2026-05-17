@@ -194,9 +194,22 @@ public class CompilationEngine {
     
     public void compileExpression() {
         compileTerm();
+
         while (tokenizer.tokenType() == TokenType.SYMBOL && isOp(tokenizer.getToken())) {
+            String op = tokenizer.getToken();
             processToken();
+            
             compileTerm();
+            
+            if (op.equals("+")) vmWriter.writeArithmetic(VMWriter.Command.ADD);
+            else if (op.equals("-")) vmWriter.writeArithmetic(VMWriter.Command.SUB);
+            else if (op.equals("*")) vmWriter.writeCall("Math.multiply", 2);
+            else if (op.equals("/")) vmWriter.writeCall("Math.divide", 2);
+            else if (op.equals("&")) vmWriter.writeArithmetic(VMWriter.Command.AND);
+            else if (op.equals("|")) vmWriter.writeArithmetic(VMWriter.Command.OR);
+            else if (op.equals("<")) vmWriter.writeArithmetic(VMWriter.Command.LT);
+            else if (op.equals(">")) vmWriter.writeArithmetic(VMWriter.Command.GT);
+            else if (op.equals("=")) vmWriter.writeArithmetic(VMWriter.Command.EQ);
         }
     }
     
@@ -204,19 +217,27 @@ public class CompilationEngine {
         TokenType type = tokenizer.tokenType();
         String val = tokenizer.getToken();
 
-        if (type == TokenType.INT_CONST || type == TokenType.STRING_CONST || 
+        if (type == TokenType.INT_CONST) {
+            vmWriter.writePush(VMWriter.Segment.CONST, Integer.parseInt(val));
+            processToken();
+        } 
+        else if (type == TokenType.STRING_CONST || 
            (type == TokenType.KEYWORD && (val.equals("true") || val.equals("false") || val.equals("null") || val.equals("this")))) {
             processToken();
         } 
         else if (type == TokenType.SYMBOL && (val.equals("-") || val.equals("~"))) {
+            String op = val;
             processToken();
             compileTerm();
+            
+            if (op.equals("-")) vmWriter.writeArithmetic(VMWriter.Command.NEG);
+            else if (op.equals("~")) vmWriter.writeArithmetic(VMWriter.Command.NOT);
         } 
         else if (type == TokenType.SYMBOL && val.equals("(")) {
-            processToken(); 
+            processToken();
             compileExpression();
-            processToken(); 
-        } 
+            processToken();
+        }
         else if (type == TokenType.IDENTIFIER) {
             processToken(); 
             if (tokenizer.tokenType() == TokenType.SYMBOL) {
