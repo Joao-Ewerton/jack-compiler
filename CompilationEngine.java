@@ -59,27 +59,57 @@ public class CompilationEngine {
     }
 
     public void compileClassVarDec() {
+        SymbolTable.Kind kind = tokenizer.getToken().equals("static") ? SymbolTable.Kind.STATIC : SymbolTable.Kind.FIELD;
         processToken();
+        String type = tokenizer.getToken();
         processToken();
+        String name = tokenizer.getToken();
         processToken();
+        symbolTable.define(name, type, kind);
 
         while (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(",")) {
             processToken();
+            name = tokenizer.getToken();
             processToken();
+            symbolTable.define(name, type, kind);
         }
         processToken();
     }
 
     public void compileVarDec() {
         processToken();
+        String type = tokenizer.getToken();
         processToken();
+        String name = tokenizer.getToken();
         processToken();
+        symbolTable.define(name, type, SymbolTable.Kind.VAR);
 
         while (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(",")) {
             processToken();
+            name = tokenizer.getToken();
             processToken();
+            symbolTable.define(name, type, SymbolTable.Kind.VAR);
         }
         processToken();
+    }
+
+    public void compileParameterList() {
+        if (!(tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(")"))) {
+            String type = tokenizer.getToken();
+            processToken();
+            String name = tokenizer.getToken();
+            processToken();
+            symbolTable.define(name, type, SymbolTable.Kind.ARG);
+
+            while (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(",")) {
+                processToken();
+                type = tokenizer.getToken();
+                processToken();
+                name = tokenizer.getToken();
+                processToken();
+                symbolTable.define(name, type, SymbolTable.Kind.ARG);
+            }
+        }
     }
 
     public void compileSubroutine() {
@@ -96,19 +126,6 @@ public class CompilationEngine {
         }
         compileStatements();
         processToken();
-    }
-
-    public void compileParameterList() {
-        if (!(tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(")"))) {
-            processToken();
-            processToken();
-
-            while (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(",")) {
-                processToken();
-                processToken();
-                processToken();
-            }
-        }
     }
     
     public void compileStatements() {
@@ -143,17 +160,21 @@ public class CompilationEngine {
     
     public void compileLet() {
         processToken();
+        String varName = tokenizer.getToken();
         processToken();
         
         if (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals("[")) {
-            processToken();
-            compileExpression();
-            processToken();
+            processToken(); compileExpression(); processToken();
         }
         
         processToken();
         compileExpression();
         processToken();
+        
+        SymbolTable.Symbol sym = symbolTable.resolve(varName);
+        if (sym != null) {
+            vmWriter.writePop(kindToSegment(sym.kind()), sym.index());
+        }
     }
     
     public void compileWhile() {
@@ -171,8 +192,12 @@ public class CompilationEngine {
         
         if (!(tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(";"))) {
             compileExpression();
+        } else {
+            vmWriter.writePush(VMWriter.Segment.CONST, 0); 
         }
+        
         processToken();
+        vmWriter.writeReturn();
     }
     
     public void compileIf() {
@@ -282,6 +307,17 @@ public class CompilationEngine {
                     compileExpressionList();
                     processToken(); 
                 }
+                else {
+                    SymbolTable.Symbol sym = symbolTable.resolve(name);
+                    if (sym != null) {
+                        vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
+                    }
+                }
+            } else {
+                SymbolTable.Symbol sym = symbolTable.resolve(name);
+                if (sym != null) {
+                    vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
+                }
             }
         }
     }
@@ -293,6 +329,16 @@ public class CompilationEngine {
                 processToken(); 
                 compileExpression();
             }
+        }
+    }
+
+    private VMWriter.Segment kindToSegment(SymbolTable.Kind kind) {
+        switch (kind) {
+            case STATIC: return VMWriter.Segment.STATIC;
+            case FIELD:  return VMWriter.Segment.THIS;
+            case VAR:    return VMWriter.Segment.LOCAL;
+            case ARG:    return VMWriter.Segment.ARG;
+            default:     return VMWriter.Segment.CONST;
         }
     }
 
