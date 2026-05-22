@@ -113,17 +113,42 @@ public class CompilationEngine {
     }
 
     public void compileSubroutine() {
+        symbolTable.startSubroutine();
+        ifLabelNum = 0;
+        whileLabelNum = 0;
+
+        String subroutineType = tokenizer.getToken();
+        processToken(); 
+        
         processToken();
-        processToken();
-        processToken();
+        String subName = tokenizer.getToken();
+        processToken(); 
+
+        if (subroutineType.equals("method")) {
+            symbolTable.define("this", className, SymbolTable.Kind.ARG);
+        }
+
         processToken();
         compileParameterList();
         processToken();
-
         processToken();
+        
         while (tokenizer.tokenType() == TokenType.KEYWORD && tokenizer.getToken().equals("var")) {
             compileVarDec();
         }
+        
+        int nLocals = symbolTable.varCount(SymbolTable.Kind.VAR);
+        vmWriter.writeFunction(className + "." + subName, nLocals);
+        
+        if (subroutineType.equals("constructor")) {
+            vmWriter.writePush(VMWriter.Segment.CONST, symbolTable.varCount(SymbolTable.Kind.FIELD));
+            vmWriter.writeCall("Memory.alloc", 1);
+            vmWriter.writePop(VMWriter.Segment.POINTER, 0);
+        } else if (subroutineType.equals("method")) {
+            vmWriter.writePush(VMWriter.Segment.ARG, 0);
+            vmWriter.writePop(VMWriter.Segment.POINTER, 0);
+        }
+
         compileStatements();
         processToken();
     }
@@ -145,17 +170,36 @@ public class CompilationEngine {
 
     public void compileDo() {
         processToken();
+        String name = tokenizer.getToken();
         processToken();
         
+        int nArgs = 0;
         if (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(".")) {
             processToken();
+            String subName = tokenizer.getToken();
             processToken();
+            
+            SymbolTable.Symbol sym = symbolTable.resolve(name);
+            if (sym != null) {
+                vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
+                name = sym.type() + "." + subName;
+                nArgs++;
+            } else {
+                name = name + "." + subName;
+            }
+        } else {
+            vmWriter.writePush(VMWriter.Segment.POINTER, 0);
+            name = className + "." + name;
+            nArgs++;
         }
         
         processToken();
-        compileExpressionList();
+        nArgs += compileExpressionList();
         processToken();
         processToken();
+        
+        vmWriter.writeCall(name, nArgs);
+        vmWriter.writePop(VMWriter.Segment.TEMP, 0);
     }
     
     public void compileLet() {
@@ -287,49 +331,64 @@ public class CompilationEngine {
         } 
         // 6 - Identificadores
         else if (type == TokenType.IDENTIFIER) {
+            String name = val;
             processToken(); 
+            
             if (tokenizer.tokenType() == TokenType.SYMBOL) {
                 String nextToken = tokenizer.getToken();
                 if (nextToken.equals("[")) {
-                    processToken(); 
-                    compileExpression();
-                    processToken(); 
+                    processToken(); compileExpression(); processToken(); 
                 } 
-                else if (nextToken.equals("(")) {
-                    processToken(); 
-                    compileExpressionList();
-                    processToken(); 
-                } 
-                else if (nextToken.equals(".")) {
-                    processToken(); 
-                    processToken(); 
-                    processToken(); 
-                    compileExpressionList();
-                    processToken(); 
+                else if (nextToken.equals("(") || nextToken.equals(".")) {
+                    int nArgs = 0;
+                    if (nextToken.equals(".")) {
+                        processToken();
+                        String subName = tokenizer.getToken();
+                        processToken();
+                        
+                        SymbolTable.Symbol sym = symbolTable.resolve(name);
+                        if (sym != null) {
+                            vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
+                            name = sym.type() + "." + subName;
+                            nArgs++;
+                        } else {
+                            name = name + "." + subName;
+                        }
+                    } else {
+                        vmWriter.writePush(VMWriter.Segment.POINTER, 0);
+                        name = className + "." + name;
+                        nArgs++;
+                    }
+                    
+                    processToken();
+                    nArgs += compileExpressionList();
+                    processToken();
+                    
+                    vmWriter.writeCall(name, nArgs);
                 }
                 else {
                     SymbolTable.Symbol sym = symbolTable.resolve(name);
-                    if (sym != null) {
-                        vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
-                    }
+                    if (sym != null) vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
                 }
             } else {
                 SymbolTable.Symbol sym = symbolTable.resolve(name);
-                if (sym != null) {
-                    vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
-                }
+                if (sym != null) vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
             }
         }
     }
 
-    public void compileExpressionList() {
+    public int compileExpressionList() {
+        int nArgs = 0;
         if (!(tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(")"))) {
             compileExpression();
+            nArgs++;
             while (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals(",")) {
-                processToken(); 
+                processToken();
                 compileExpression();
+                nArgs++;
             }
         }
+        return nArgs;
     }
 
     private VMWriter.Segment kindToSegment(SymbolTable.Kind kind) {
