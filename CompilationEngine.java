@@ -217,14 +217,35 @@ public class CompilationEngine {
         TokenType type = tokenizer.tokenType();
         String val = tokenizer.getToken();
 
+        // 1 - Constantes Inteiras
         if (type == TokenType.INT_CONST) {
             vmWriter.writePush(VMWriter.Segment.CONST, Integer.parseInt(val));
             processToken();
         } 
-        else if (type == TokenType.STRING_CONST || 
-           (type == TokenType.KEYWORD && (val.equals("true") || val.equals("false") || val.equals("null") || val.equals("this")))) {
+        // 2 - Constantes de String
+        else if (type == TokenType.STRING_CONST) {
+            String str = val;
+            vmWriter.writePush(VMWriter.Segment.CONST, str.length());
+            vmWriter.writeCall("String.new", 1);
+            for (int i = 0; i < str.length(); i++) {
+                vmWriter.writePush(VMWriter.Segment.CONST, (int) str.charAt(i));
+                vmWriter.writeCall("String.appendChar", 2);
+            }
+            processToken();
+        }
+        // 3 - Palavras-chave (true, false, null, this)
+        else if (type == TokenType.KEYWORD && (val.equals("true") || val.equals("false") || val.equals("null") || val.equals("this"))) {
+            if (val.equals("false") || val.equals("null")) {
+                vmWriter.writePush(VMWriter.Segment.CONST, 0);
+            } else if (val.equals("true")) {
+                vmWriter.writePush(VMWriter.Segment.CONST, 0);
+                vmWriter.writeArithmetic(VMWriter.Command.NOT);
+            } else if (val.equals("this")) {
+                vmWriter.writePush(VMWriter.Segment.POINTER, 0);
+            }
             processToken();
         } 
+        // 4 - Operadores Unários
         else if (type == TokenType.SYMBOL && (val.equals("-") || val.equals("~"))) {
             String op = val;
             processToken();
@@ -233,11 +254,13 @@ public class CompilationEngine {
             if (op.equals("-")) vmWriter.writeArithmetic(VMWriter.Command.NEG);
             else if (op.equals("~")) vmWriter.writeArithmetic(VMWriter.Command.NOT);
         } 
+        // 5 - Expressões entre parênteses (x + y)
         else if (type == TokenType.SYMBOL && val.equals("(")) {
             processToken();
             compileExpression();
             processToken();
-        }
+        } 
+        // 6 - Identificadores
         else if (type == TokenType.IDENTIFIER) {
             processToken(); 
             if (tokenizer.tokenType() == TokenType.SYMBOL) {
