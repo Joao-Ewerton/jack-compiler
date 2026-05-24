@@ -1,46 +1,64 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class JackCompiler {
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Uso: java JackCompiler <arquivo_ou_diretorio>");
-            return;
+        if (args.length == 0) {
+            args = new String[]{"/home/joao/nand2tetris/projects/11/Seven"};
         }
 
-        File fileOrDir = new File(args[0]);
-        File[] files;
+        System.out.println("A tentar abrir o caminho: " + args[0]);
+        File file = new File(args[0]);
 
-        if (fileOrDir.isFile() && fileOrDir.getName().endsWith(".jack")) {
-            files = new File[]{fileOrDir};
-        } else if (fileOrDir.isDirectory()) {
-            files = fileOrDir.listFiles((dir, name) -> name.endsWith(".jack"));
-        } else {
-            System.out.println("Nenhum arquivo .jack encontrado.");
-            return;
+        if (!file.exists()) {
+            System.err.println("ERRO: O caminho especificado não existe!");
+            System.exit(1);
         }
 
-        if (files != null) {
-            for (File file : files) {
-                try {
-                    processFile(file);
-                } catch (IOException e) {
-                    System.out.println("Erro processando " + file.getName());
+        if (file.isDirectory()) {
+            System.out.println("O caminho é uma pasta. A procurar ficheiros .jack...");
+            File[] files = file.listFiles();
+            int cont = 0;
+            if (files != null) {
+                for (File f : files) {
+                    if (f.isFile() && f.getName().endsWith(".jack")) {
+                        compileSingleFile(f);
+                        cont++;
+                    }
                 }
+            }
+            System.out.println("Processo terminado. Ficheiros compilados nesta pasta: " + cont);
+        } else if (file.isFile()) {
+            if (!file.getName().endsWith(".jack")) {
+                System.err.println("ERRO: O arquivo precisa terminar com .jack");
+                System.exit(1);
+            } else {
+                compileSingleFile(file);
             }
         }
     }
 
-    private static void processFile(File inputFile) throws IOException {
-        // gera o arquivo com final _Output.xml
-        String outputFilename = inputFile.getAbsolutePath().replace(".jack", "_Output.xml");
-        File outputFile = new File(outputFilename);
+    private static void compileSingleFile(File f) {
+        String inputFileName = f.getAbsolutePath();
+        int pos = inputFileName.lastIndexOf('.');
+        String outputFileName = inputFileName.substring(0, pos) + ".vm";
+
+        System.out.println("A COMPILAR: " + inputFileName);
+        System.out.println("A GERAR VM EM: " + outputFileName);
         
-        JackTokenizer tokenizer = new JackTokenizer(inputFile);
-        CompilationEngine engine = new CompilationEngine(tokenizer, outputFile);
-        
-        engine.compileClass();
-        
-        System.out.println("Criado: " + outputFilename);
+        try {
+            // Leitura e escrita otimizadas para a Fase 3 com a API NIO
+            byte[] inputBytes = Files.readAllBytes(Paths.get(inputFileName));
+            CompilationEngine engine = new CompilationEngine(inputBytes);
+            engine.parse();
+            
+            String result = engine.getVMOutput();
+            Files.write(Paths.get(outputFileName), result.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            System.err.println("Erro de IO ao processar o arquivo " + inputFileName + ": " + e.getMessage());
+        }
     }
 }
