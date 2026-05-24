@@ -7,14 +7,14 @@ import java.nio.file.Paths;
 public class JackCompiler {
     public static void main(String[] args) {
         if (args.length == 0) {
-            args = new String[]{"/home/joao/nand2tetris/projects/11/Seven"};
+            args = new String[]{"C:\\Users\\joaoo\\Desktop\\nand2tetris\\nand2tetris\\projects\\11\\Seven"};
         }
 
         System.out.println("A tentar abrir o caminho: " + args[0]);
         File file = new File(args[0]);
 
         if (!file.exists()) {
-            System.err.println("ERRO: O caminho especificado não existe!");
+            System.err.println("ERRO: O caminho especificado NÃO existe!");
             System.exit(1);
         }
 
@@ -50,7 +50,6 @@ public class JackCompiler {
         System.out.println("A GERAR VM EM: " + outputFileName);
         
         try {
-            // Leitura e escrita otimizadas para a Fase 3 com a API NIO
             byte[] inputBytes = Files.readAllBytes(Paths.get(inputFileName));
             CompilationEngine engine = new CompilationEngine(inputBytes);
             engine.parse();
