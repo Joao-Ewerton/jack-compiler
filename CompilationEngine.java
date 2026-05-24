@@ -1,6 +1,3 @@
-package br.ufma.ecp;
-
-import br.ufma.ecp.token.TokenType;
 import java.nio.charset.StandardCharsets;
 
 public class CompilationEngine {
@@ -222,13 +219,26 @@ public class CompilationEngine {
     }
     
     public void compileWhile() {
+        String l1 = "WHILE_EXP" + whileLabelNum;
+        String l2 = "WHILE_END" + whileLabelNum;
+        whileLabelNum++;
+
+        vmWriter.writeLabel(l1);
+        
         processToken();
         processToken();
         compileExpression();
         processToken();
+        
+        vmWriter.writeArithmetic(VMWriter.Command.NOT);
+        vmWriter.writeIf(l2);
+        
         processToken();
         compileStatements();
         processToken();
+        
+        vmWriter.writeGoto(l1);
+        vmWriter.writeLabel(l2);
     }
     
     public void compileReturn() {
@@ -245,19 +255,36 @@ public class CompilationEngine {
     }
     
     public void compileIf() {
+        String l1 = "IF_TRUE" + ifLabelNum;
+        String l2 = "IF_FALSE" + ifLabelNum;
+        String l3 = "IF_END" + ifLabelNum;
+        ifLabelNum++;
+
         processToken();
         processToken();
         compileExpression();
         processToken();
+        
+        vmWriter.writeIf(l1);
+        vmWriter.writeGoto(l2);
+        vmWriter.writeLabel(l1);
+        
         processToken();
         compileStatements();
         processToken();
         
         if (tokenizer.tokenType() == TokenType.KEYWORD && tokenizer.getToken().equals("else")) {
+            vmWriter.writeGoto(l3);
+            vmWriter.writeLabel(l2);
+            
             processToken();
             processToken();
             compileStatements();
             processToken();
+            
+            vmWriter.writeLabel(l3);
+        } else {
+            vmWriter.writeLabel(l2);
         }
     }
     
