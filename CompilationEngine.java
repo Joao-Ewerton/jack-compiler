@@ -204,17 +204,33 @@ public class CompilationEngine {
         String varName = tokenizer.getToken();
         processToken();
         
+        boolean isArray = false;
         if (tokenizer.tokenType() == TokenType.SYMBOL && tokenizer.getToken().equals("[")) {
-            processToken(); compileExpression(); processToken();
+            isArray = true;
+            SymbolTable.Symbol sym = symbolTable.resolve(varName);
+            vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
+            
+            processToken();
+            compileExpression();
+            processToken();
+            
+            vmWriter.writeArithmetic(VMWriter.Command.ADD);
         }
         
         processToken();
         compileExpression();
         processToken();
         
-        SymbolTable.Symbol sym = symbolTable.resolve(varName);
-        if (sym != null) {
-            vmWriter.writePop(kindToSegment(sym.kind()), sym.index());
+        if (isArray) {
+            vmWriter.writePop(VMWriter.Segment.TEMP, 0);
+            vmWriter.writePop(VMWriter.Segment.POINTER, 1);
+            vmWriter.writePush(VMWriter.Segment.TEMP, 0);
+            vmWriter.writePop(VMWriter.Segment.THAT, 0);
+        } else {
+            SymbolTable.Symbol sym = symbolTable.resolve(varName);
+            if (sym != null) {
+                vmWriter.writePop(kindToSegment(sym.kind()), sym.index());
+            }
         }
     }
     
@@ -364,7 +380,16 @@ public class CompilationEngine {
             if (tokenizer.tokenType() == TokenType.SYMBOL) {
                 String nextToken = tokenizer.getToken();
                 if (nextToken.equals("[")) {
-                    processToken(); compileExpression(); processToken(); 
+                    SymbolTable.Symbol sym = symbolTable.resolve(name);
+                    vmWriter.writePush(kindToSegment(sym.kind()), sym.index());
+                    
+                    processToken();
+                    compileExpression();
+                    processToken();
+                    
+                    vmWriter.writeArithmetic(VMWriter.Command.ADD);
+                    vmWriter.writePop(VMWriter.Segment.POINTER, 1);
+                    vmWriter.writePush(VMWriter.Segment.THAT, 0);
                 } 
                 else if (nextToken.equals("(") || nextToken.equals(".")) {
                     int nArgs = 0;
