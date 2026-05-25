@@ -6,7 +6,6 @@ public class CompilationEngine {
     private SymbolTable symbolTable;
     
     private String className;
-    private String subroutineName;
     private int ifLabelNum;
     private int whileLabelNum;
 

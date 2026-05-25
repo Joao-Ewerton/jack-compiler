@@ -1,4 +1,3 @@
-import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
@@ -15,21 +14,10 @@ public class JackTokenizer {
         "let", "do", "if", "else", "while", "return"
     ));
 
-    public JackTokenizer(File inputFile) throws IOException {
-        content = readFile(inputFile);
+    public JackTokenizer(String inputContent) {
+        this.content = inputContent;
         tokenize();
-        currentTokenIndex = 0;
-    }
-
-    private String readFile(File file) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
-        }
-        reader.close();
-        return sb.toString();
+        this.currentTokenIndex = 0;
     }
 
     // separar os tokens usando regex, ignorando comentários

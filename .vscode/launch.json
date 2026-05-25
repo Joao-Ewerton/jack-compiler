@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "JackCompiler",
+            "request": "launch",
+            "mainClass": "JackCompiler",
+            "projectName": "jack-compiler_af8a4768"
+        },
+        {
+            "type": "java",
+            "name": "Rodar JackCompiler",
+            "request": "launch",
+            "mainClass": "br.ufma.ecp.JackCompiler",
+            "projectName": "jackcompiler",
+            "args": "C:\\Users\\joaoo\\Desktop\\nand2tetris\\nand2tetris\\projects\\11\\Seven"
+        }
+    ]
+}
