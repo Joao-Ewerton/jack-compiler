@@ -33,7 +33,8 @@ public class JackAnalyzer {
     private static void processFile(File inputFile) throws IOException {
         String outputFilename = inputFile.getAbsolutePath().replace(".jack", "T_Output.xml");
         PrintWriter writer = new PrintWriter(new File(outputFilename));
-        JackTokenizer tokenizer = new JackTokenizer(inputFile);
+        String content = new String(java.nio.file.Files.readAllBytes(inputFile.toPath()));
+        JackTokenizer tokenizer = new JackTokenizer(content);
 
         writer.println("<tokens>");
         while (tokenizer.hasMoreTokens()) {
