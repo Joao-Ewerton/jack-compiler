@@ -26,7 +26,7 @@ Este projeto contempla a evolução completa do compilador nas seguintes etapas:
 
 | Campo | Informação |
 |---|---|
-| **Autor** | João Victor Lima Ewerton |
+| **Autor** | João Victor Lima Ewerton - 20250013640 |
 | **Instituição** | Universidade Federal do Maranhão - UFMA |
 | **Disciplina** | Compiladores |
 | **Projeto** | Jack Compiler |
