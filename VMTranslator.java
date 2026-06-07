@@ -2,11 +2,24 @@ import java.io.File;
 
 public class VMTranslator {
     public static void main(String[] args) {
-        if (args.length != 1) return;
-        
+        if (args.length != 1) {
+            System.out.println("Uso: java VMTranslator <arquivo.vm ou diretorio>");
+            return;
+        }
+
         File inputFile = new File(args[0]);
+        
         if (inputFile.isFile() && inputFile.getName().endsWith(".vm")) {
             processFile(inputFile);
+        } else if (inputFile.isDirectory()) {
+            File[] files = inputFile.listFiles((dir, name) -> name.endsWith(".vm"));
+            if (files != null) {
+                for (File file : files) {
+                    processFile(file);
+                }
+            }
+        } else {
+            System.out.println("Caminho inválido.");
         }
     }
 
@@ -16,14 +29,14 @@ public class VMTranslator {
         CodeWriter codeWriter = new CodeWriter(new File(outputPath));
         codeWriter.setFileName(file.getName());
 
+        System.out.println("Traduzindo: " + file.getName());
+
         while (parser.hasMoreCommands()) {
             parser.advance();
             int type = parser.commandType();
-            if (type == Parser.C_ARITHMETIC) {
-                codeWriter.writeArithmetic(parser.arg1());
-            } else if (type == Parser.C_PUSH || type == Parser.C_POP) {
-                codeWriter.writePushPop(type, parser.arg1(), parser.arg2());
-            }
+
+            if (type == Parser.C_ARITHMETIC) codeWriter.writeArithmetic(parser.arg1());
+            else if (type == Parser.C_PUSH || type == Parser.C_POP) codeWriter.writePushPop(type, parser.arg1(), parser.arg2());
         }
         codeWriter.close();
     }

@@ -59,12 +59,15 @@ public class CodeWriter {
             if (isBaseSegment(segment)) {
                 out.println("@" + getSegmentPointer(segment) + "\nD=M\n@" + index + "\nD=D+A\n@R13\nM=D");
                 out.println("@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D");
-            } else if (segment.equals("temp") || segment.equals("pointer")) {
+            } else if (segment.equals("temp") || segment.equals("pointer") || segment.equals("static")) {
                 out.println("@SP\nAM=M-1\nD=M");
                 if (segment.equals("temp")) out.println("@" + (5 + index));
-                if (segment.equals("pointer")) out.println("@" + (3 + index));
+                else if (segment.equals("pointer")) out.println("@" + (3 + index));
+                else if (segment.equals("static")) out.println("@" + fileName + "." + index);
                 out.println("M=D");
             }
+        } else if (segment.equals("static")) {
+            out.println("@" + fileName + "." + index + "\nD=M");
         }
     }
 
