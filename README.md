@@ -36,7 +36,7 @@ Este projeto contempla a evolução completa do compilador nas seguintes etapas:
 
 ## 🧠 Visão Geral da Arquitetura
 
-A arquitetura do compilador foi organizada em módulos com responsabilidades bem definidas, seguindo o pipeline clássico de compilação: **entrada Jack → tokens → parsing → tabela de símbolos → geração VM**.
+A arquitetura completa foi organizada em módulos com responsabilidades bem definidas, seguindo dois pipelines conectados: **entrada Jack → tokens → parsing → tabela de símbolos → geração VM → tradução para Assembly Hack**.
 
 ```mermaid
 flowchart LR
@@ -45,6 +45,10 @@ flowchart LR
     C --> D[SymbolTable]
     C --> E[VMWriter]
     E --> F[Arquivo .vm]
+    F --> G[Parser]
+    G --> H[VMTranslator]
+    H --> I[CodeWriter]
+    I --> J[Arquivo .asm]
 ```
 
 ### 📁 Módulos Implementados
