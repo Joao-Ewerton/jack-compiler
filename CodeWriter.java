@@ -36,47 +36,62 @@ public class CodeWriter {
             labelCounter++;
 
             out.println("@SP\nAM=M-1\nD=M\nA=A-1\nD=M-D");
+            
             out.println("@" + labelTrue);
             if (command.equals("eq")) out.println("D;JEQ");
             else if (command.equals("gt")) out.println("D;JGT");
             else if (command.equals("lt")) out.println("D;JLT");
 
-            out.println("@SP\nA=M-1\nM=0\n@" + labelEnd + "\n0;JMP"); // False
-            out.println("(" + labelTrue + ")\n@SP\nA=M-1\nM=-1"); // True
+            out.println("@SP\nA=M-1\nM=0\n@" + labelEnd + "\n0;JMP");
+            out.println("(" + labelTrue + ")\n@SP\nA=M-1\nM=-1");
             out.println("(" + labelEnd + ")");
         }
     }
 
     public void writePushPop(int command, String segment, int index) {
         out.println("// " + (command == Parser.C_PUSH ? "push" : "pop") + " " + segment + " " + index);
+        
         if (command == Parser.C_PUSH) {
-            if (segment.equals("constant")) out.println("@" + index + "\nD=A");
-            else if (isBaseSegment(segment)) out.println("@" + getSegmentPointer(segment) + "\nD=M\n@" + index + "\nA=D+A\nD=M");
-            else if (segment.equals("temp")) out.println("@" + (5 + index) + "\nD=M");
-            else if (segment.equals("pointer")) out.println("@" + (3 + index) + "\nD=M");
+            if (segment.equals("constant")) {
+                out.println("@" + index + "\nD=A");
+            } else if (isBaseSegment(segment)) {
+                out.println("@" + getSegmentPointer(segment) + "\nD=M\n@" + index + "\nA=D+A\nD=M");
+            } else if (segment.equals("temp")) {
+                out.println("@" + (5 + index) + "\nD=M");
+            } else if (segment.equals("pointer")) {
+                out.println("@" + (3 + index) + "\nD=M");
+            } else if (segment.equals("static")) {
+                out.println("@" + fileName + "." + index + "\nD=M"); // Lógica exclusiva do StaticTest!
+            }
+            
             out.println("@SP\nA=M\nM=D\n@SP\nM=M+1");
+
         } else if (command == Parser.C_POP) {
             if (isBaseSegment(segment)) {
                 out.println("@" + getSegmentPointer(segment) + "\nD=M\n@" + index + "\nD=D+A\n@R13\nM=D");
                 out.println("@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D");
             } else if (segment.equals("temp") || segment.equals("pointer") || segment.equals("static")) {
                 out.println("@SP\nAM=M-1\nD=M");
+                
                 if (segment.equals("temp")) out.println("@" + (5 + index));
                 else if (segment.equals("pointer")) out.println("@" + (3 + index));
-                else if (segment.equals("static")) out.println("@" + fileName + "." + index);
+                else if (segment.equals("static")) out.println("@" + fileName + "." + index); // Gravação do StaticTest!
+                
                 out.println("M=D");
             }
-        } else if (segment.equals("static")) {
-            out.println("@" + fileName + "." + index + "\nD=M");
         }
     }
 
-    private boolean isBaseSegment(String seg) { return seg.equals("local") || seg.equals("argument") || seg.equals("this") || seg.equals("that"); }
+    private boolean isBaseSegment(String seg) { 
+        return seg.equals("local") || seg.equals("argument") || seg.equals("this") || seg.equals("that"); 
+    }
+    
     private String getSegmentPointer(String seg) {
         if (seg.equals("local")) return "LCL";
         if (seg.equals("argument")) return "ARG";
         if (seg.equals("this")) return "THIS";
         return "THAT";
     }
+    
     public void close() { if (out != null) out.close(); }
 }
