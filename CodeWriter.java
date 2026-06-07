@@ -7,11 +7,8 @@ public class CodeWriter {
     private String fileName;
 
     public CodeWriter(File file) {
-        try {
-            out = new PrintWriter(file);
-        } catch (FileNotFoundException e) {
-            System.err.println("Erro ao criar arquivo de saída.");
-        }
+        try { out = new PrintWriter(file); } 
+        catch (FileNotFoundException e) {}
     }
 
     public void setFileName(String fileName) {
@@ -19,9 +16,22 @@ public class CodeWriter {
     }
 
     public void writeArithmetic(String command) {
+        out.println("// " + command);
+        if (command.equals("add") || command.equals("sub")) {
+            out.println("@SP\nAM=M-1\nD=M\nA=A-1"); // Desempilha 2 valores
+            if (command.equals("add")) out.println("M=M+D");
+            if (command.equals("sub")) out.println("M=M-D");
+        }
     }
 
     public void writePushPop(int command, String segment, int index) {
+        out.println("// push " + segment + " " + index);
+        if (command == Parser.C_PUSH && segment.equals("constant")) {
+            out.println("@" + index);
+            out.println("D=A");
+            // Coloca na pilha
+            out.println("@SP\nA=M\nM=D\n@SP\nM=M+1");
+        }
     }
 
     public void close() {
