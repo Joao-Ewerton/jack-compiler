@@ -15,7 +15,7 @@ public class Parser {
         try {
             scanner = new Scanner(file);
         } catch (FileNotFoundException e) {
-            System.err.println("Erro: Arquivo não encontrado - " + file.getAbsolutePath());
+            System.err.println("Erro: Arquivo não encontrado.");
         }
     }
 
@@ -23,9 +23,7 @@ public class Parser {
         while (scanner != null && scanner.hasNextLine()) {
             String line = scanner.nextLine();
             int commentIndex = line.indexOf("//");
-            if (commentIndex != -1) {
-                line = line.substring(0, commentIndex);
-            }
+            if (commentIndex != -1) line = line.substring(0, commentIndex);
             line = line.trim();
 
             if (!line.isEmpty()) {
@@ -37,9 +35,7 @@ public class Parser {
         return false;
     }
 
-    public void advance() {
-        // O avanço ocorre organicamente no hasMoreCommands
-    }
+    public void advance() {}
 
     public int commandType() {
         String cmd = currentTokens[0];
@@ -49,9 +45,7 @@ public class Parser {
     }
 
     public String arg1() {
-        if (commandType() == C_ARITHMETIC) {
-            return currentTokens[0];
-        }
+        if (commandType() == C_ARITHMETIC) return currentTokens[0];
         return currentTokens[1];
     }
 
