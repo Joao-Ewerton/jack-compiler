@@ -126,6 +126,137 @@ O módulo `VMWriter` encapsula a escrita desses comandos, evitando acoplamento d
 
 ---
 
+## ✅ VM Translator - Parte 1
+
+O projeto também inclui a primeira etapa do **VM Translator**, responsável por traduzir comandos da linguagem da **Hack Virtual Machine** para instruções válidas em **Assembly Hack**.
+
+Essa etapa corresponde ao **Project 07 do Nand2Tetris** e contempla comandos de acesso à memória, operações aritméticas, operações lógicas e comparações.
+
+### 🧩 Arquitetura do VM Translator
+
+```mermaid
+flowchart LR
+    A[Arquivo .vm] --> B[Parser]
+    B --> C[VMTranslator]
+    C --> D[CodeWriter]
+    D --> E[Arquivo .asm]
+```
+
+| Módulo | Responsabilidade |
+|---|---|
+| **VMTranslator** | Classe principal. Recebe um arquivo `.vm` ou diretório, coordena a tradução e gera arquivos `.asm`. |
+| **Parser** | Lê comandos VM, remove comentários e espaços, identifica o tipo do comando e disponibiliza seus argumentos. |
+| **CodeWriter** | Converte comandos VM em instruções Assembly Hack e gera rótulos únicos para operações relacionais. |
+
+### 📚 Comandos Suportados
+
+#### Acesso à memória
+
+| Comando | Segmentos suportados |
+|---|---|
+| `push` | `constant`, `local`, `argument`, `this`, `that`, `temp`, `pointer`, `static` |
+| `pop` | `local`, `argument`, `this`, `that`, `temp`, `pointer`, `static` |
+
+#### Operações aritméticas, lógicas e relacionais
+
+| Categoria | Comandos |
+|---|---|
+| Aritméticas | `add`, `sub`, `neg` |
+| Lógicas | `and`, `or`, `not` |
+| Relacionais | `eq`, `gt`, `lt` |
+
+As comparações seguem o padrão da Hack VM:
+
+- `true` é representado por `-1`.
+- `false` é representado por `0`.
+- Rótulos internos únicos evitam conflitos entre múltiplas comparações.
+- Variáveis `static` são identificadas no formato `<nomeDoArquivo>.<índice>`.
+
+---
+
+## 🚀 Como Compilar e Executar o VM Translator
+
+### 1. Compile os módulos
+
+```bash
+javac VMTranslator.java Parser.java CodeWriter.java
+```
+
+### 2. Traduza um arquivo `.vm`
+
+```bash
+java VMTranslator caminho/para/BasicTest.vm
+```
+
+Exemplo:
+
+```bash
+java VMTranslator ./projects/07/MemoryAccess/BasicTest/BasicTest.vm
+```
+
+Saída gerada:
+
+```text
+BasicTest.asm
+```
+
+### 3. Traduza todos os arquivos `.vm` de um diretório
+
+```bash
+java VMTranslator caminho/para/diretorio
+```
+
+Exemplo:
+
+```bash
+java VMTranslator ./projects/07/MemoryAccess/StaticTest
+```
+
+Cada arquivo `.vm` encontrado no diretório gera um arquivo `.asm` com o mesmo nome.
+
+### Exemplo de tradução
+
+Entrada VM:
+
+```vm
+push constant 7
+push constant 8
+add
+pop local 0
+```
+
+Execução:
+
+```bash
+java VMTranslator Exemplo.vm
+```
+
+Resultado:
+
+```text
+Exemplo.vm → Exemplo.asm
+```
+
+O arquivo `.asm` gerado pode ser validado com o **CPU Emulator** e os scripts oficiais do **Project 07**.
+
+### 🧪 Testes Oficiais do VM Translator
+
+| Teste | Objetivo | Recursos Validados |
+|---|---|---|
+| **SimpleAdd** | Validar soma básica na pilha. | `push constant` e `add`. |
+| **StackTest** | Validar operações aritméticas, lógicas e relacionais. | `add`, `sub`, `neg`, `eq`, `gt`, `lt`, `and`, `or` e `not`. |
+| **BasicTest** | Validar acesso aos segmentos base de memória. | `local`, `argument`, `this` e `that`. |
+| **PointerTest** | Validar acesso direto aos ponteiros. | Segmento `pointer`. |
+| **StaticTest** | Validar variáveis estáticas associadas ao arquivo VM. | Segmento `static`. |
+
+Fluxo de validação:
+
+```text
+Traduzir .vm → gerar .asm → abrir CPU Emulator → carregar .tst → executar → comparar com .cmp
+```
+
+---
+
 ## 🚀 Recursos Avançados da Fase 3
 
 ### 🔁 Controle de Fluxo
@@ -488,6 +619,8 @@ java JackCompiler ./tests/Square
 | **Fase 2** | Parser por descida recursiva/XML | ✅ Implementado como etapa auxiliar/legada |
 | **Fase 3** | Geração de código VM | ✅ Implementado |
 | **Testes VM** | Seven, ConvertToBin e Square | ✅ Homologados |
+| **VM Translator - Parte 1** | Tradução de acesso à memória e operações aritméticas/lógicas para Assembly Hack | ✅ Implementado |
+| **Testes VM Translator** | SimpleAdd, StackTest, BasicTest, PointerTest e StaticTest | ✅ Suportados |
 
 ---
 
@@ -495,6 +628,7 @@ java JackCompiler ./tests/Square
 
 Este projeto foi desenvolvido com base na arquitetura educacional proposta pelo curso **Nand2Tetris**, especialmente nos projetos:
 
+- **Project 07:** Virtual Machine I - Stack Arithmetic
 - **Project 10:** Compiler I - Syntax Analysis
 - **Project 11:** Compiler II - Code Generation
 

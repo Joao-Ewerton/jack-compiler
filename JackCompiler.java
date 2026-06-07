@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 public class JackCompiler {
     public static void main(String[] args) {
         if (args.length == 0) {
-            args = new String[]{"C:\\Users\\joaoo\\Desktop\\nand2tetris\\nand2tetris\\projects\\11\\Pong"};
+            args = new String[]{"C:\\Users\\joaoo\\Desktop\\nand2tetris\\nand2tetris\\projects\\11\\ComplexArrays"};
         }
 
         System.out.println("A tentar abrir o caminho: " + args[0]);
