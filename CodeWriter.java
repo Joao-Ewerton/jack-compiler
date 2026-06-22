@@ -6,6 +6,7 @@ public class CodeWriter {
     private PrintWriter out;
     private String fileName;
     private int labelCounter = 0;
+    private int returnCounter = 0;
 
     public CodeWriter(File file) {
         try { out = new PrintWriter(file); } 
@@ -105,6 +106,54 @@ public class CodeWriter {
         // Se D não for falso (D != 0), salta para o label
         out.println("@" + label);
         out.println("D;JNE"); 
+    }
+
+    //NOVOS MÉTODOS: SUB-ROTINAS
+    public void writeFunction(String functionName, int numLocals) {
+        out.println("// function " + functionName + " " + numLocals);
+        out.println("(" + functionName + ")");
+        // Inicializa as variáveis locais (LCL) com 0
+        for (int i = 0; i < numLocals; i++) {
+            out.println("@SP\nA=M\nM=0\n@SP\nM=M+1");
+        }
+    }
+
+    public void writeCall(String functionName, int numArgs) {
+        String returnLabel = functionName + "$ret." + returnCounter;
+        returnCounter++;
+        out.println("// call " + functionName + " " + numArgs);
+
+        out.println("@" + returnLabel + "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1");
+        out.println("@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1");
+        out.println("@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1");
+        out.println("@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1");
+        out.println("@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1");
+
+        out.println("@SP\nD=M\n@5\nD=D-A\n@" + numArgs + "\nD=D-A\n@ARG\nM=D");
+
+        out.println("@SP\nD=M\n@LCL\nM=D");
+
+        out.println("@" + functionName + "\n0;JMP");
+
+        out.println("(" + returnLabel + ")");
+    }
+
+    public void writeReturn() {
+        out.println("// return");
+        out.println("@LCL\nD=M\n@R13\nM=D");
+
+        out.println("@5\nA=D-A\nD=M\n@R14\nM=D");
+
+        out.println("@SP\nAM=M-1\nD=M\n@ARG\nA=M\nM=D");
+
+        out.println("@ARG\nD=M+1\n@SP\nM=D");
+
+        out.println("@R13\nAM=M-1\nD=M\n@THAT\nM=D");
+        out.println("@R13\nAM=M-1\nD=M\n@THIS\nM=D");
+        out.println("@R13\nAM=M-1\nD=M\n@ARG\nM=D");
+        out.println("@R13\nAM=M-1\nD=M\n@LCL\nM=D");
+
+        out.println("@R14\nA=M\n0;JMP");
     }
 
     private boolean isBaseSegment(String seg) { 
