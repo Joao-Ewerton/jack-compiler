@@ -10,6 +10,13 @@ public class Parser {
     public static final int C_ARITHMETIC = 0;
     public static final int C_PUSH = 1;
     public static final int C_POP = 2;
+    
+    public static final int C_LABEL = 3;
+    public static final int C_GOTO = 4;
+    public static final int C_IF = 5;
+    public static final int C_FUNCTION = 6;
+    public static final int C_RETURN = 7;
+    public static final int C_CALL = 8;
 
     public Parser(File file) {
         try {
@@ -41,6 +48,12 @@ public class Parser {
         String cmd = currentTokens[0];
         if (cmd.equals("push")) return C_PUSH;
         if (cmd.equals("pop")) return C_POP;
+        if (cmd.equals("label")) return C_LABEL;
+        if (cmd.equals("goto")) return C_GOTO;
+        if (cmd.equals("if-goto")) return C_IF;
+        if (cmd.equals("function")) return C_FUNCTION;
+        if (cmd.equals("return")) return C_RETURN;
+        if (cmd.equals("call")) return C_CALL;
         return C_ARITHMETIC; 
     }
 
