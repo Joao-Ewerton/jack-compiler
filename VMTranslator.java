@@ -35,8 +35,19 @@ public class VMTranslator {
             parser.advance();
             int type = parser.commandType();
 
-            if (type == Parser.C_ARITHMETIC) codeWriter.writeArithmetic(parser.arg1());
-            else if (type == Parser.C_PUSH || type == Parser.C_POP) codeWriter.writePushPop(type, parser.arg1(), parser.arg2());
+            if (type == Parser.C_ARITHMETIC) {
+                codeWriter.writeArithmetic(parser.arg1());
+            } else if (type == Parser.C_PUSH || type == Parser.C_POP) {
+                codeWriter.writePushPop(type, parser.arg1(), parser.arg2());
+            } 
+            // Novos roteamentos
+            else if (type == Parser.C_LABEL) {
+                codeWriter.writeLabel(parser.arg1());
+            } else if (type == Parser.C_GOTO) {
+                codeWriter.writeGoto(parser.arg1());
+            } else if (type == Parser.C_IF) {
+                codeWriter.writeIf(parser.arg1());
+            }
         }
         codeWriter.close();
     }
