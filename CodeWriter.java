@@ -82,6 +82,31 @@ public class CodeWriter {
         }
     }
 
+    //NOVOS MÉTODOS PARA CONTROLE DE FLUXO
+    public void writeLabel(String label) {
+        out.println("// label " + label);
+        // Formato oficial do Hack Assembly para declaração de label
+        out.println("(" + label + ")");
+    }
+
+    public void writeGoto(String label) {
+        out.println("// goto " + label);
+        // Salto incondicional
+        out.println("@" + label);
+        out.println("0;JMP");
+    }
+
+    public void writeIf(String label) {
+        out.println("// if-goto " + label);
+        // Retira o valor do topo da pilha (SP--)
+        out.println("@SP");
+        out.println("AM=M-1");
+        out.println("D=M");
+        // Se D não for falso (D != 0), salta para o label
+        out.println("@" + label);
+        out.println("D;JNE"); 
+    }
+
     private boolean isBaseSegment(String seg) { 
         return seg.equals("local") || seg.equals("argument") || seg.equals("this") || seg.equals("that"); 
     }
