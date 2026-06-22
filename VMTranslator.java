@@ -40,13 +40,21 @@ public class VMTranslator {
             } else if (type == Parser.C_PUSH || type == Parser.C_POP) {
                 codeWriter.writePushPop(type, parser.arg1(), parser.arg2());
             } 
-            // Novos roteamentos
+            // Novos roteamentos - Controle de Fluxo
             else if (type == Parser.C_LABEL) {
                 codeWriter.writeLabel(parser.arg1());
             } else if (type == Parser.C_GOTO) {
                 codeWriter.writeGoto(parser.arg1());
             } else if (type == Parser.C_IF) {
                 codeWriter.writeIf(parser.arg1());
+            }
+            //Novos roteamentos - Sub-rotinas
+            else if (type == Parser.C_FUNCTION) {
+                codeWriter.writeFunction(parser.arg1(), parser.arg2());
+            } else if (type == Parser.C_CALL) {
+                codeWriter.writeCall(parser.arg1(), parser.arg2());
+            } else if (type == Parser.C_RETURN) {
+                codeWriter.writeReturn();
             }
         }
         codeWriter.close();
