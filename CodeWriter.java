@@ -13,6 +13,18 @@ public class CodeWriter {
         catch (FileNotFoundException e) {}
     }
 
+    public void writeInit() {
+        out.println("// Bootstrap code");
+        
+        // SP = 256
+        out.println("@256");
+        out.println("D=A");
+        out.println("@SP");
+        out.println("M=D");
+        
+        writeCall("Sys.init", 0);
+    }
+
     public void setFileName(String fileName) {
         this.fileName = fileName.substring(0, fileName.lastIndexOf('.'));
     }
